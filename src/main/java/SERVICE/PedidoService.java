@@ -4,50 +4,58 @@ import MODEL.Pedido;
 import MODEL.Producto;
 import MODEL.ResultadoFactura;
 
+import java.util.List;
+
 public class PedidoService {
+
     private final CalculoService calculoService;
 
     public PedidoService(CalculoService calculoService) {
+        if (calculoService == null) {
+            throw new IllegalArgumentException("CalculoService no puede ser nulo.");
+        }
         this.calculoService = calculoService;
     }
 
-    // ── Operaciones de pedido ─────────────────────────────────────────────────
-
-    /**
-     * Agrega unidades de un producto al pedido.
-     * Si la mesa no está activa, la activa con el número indicado.
-     *
-     * @param pedido       Pedido actual.
-     * @param indiceMenu   Índice del producto en la lista (0-based).
-     * @param cantidad     Unidades a agregar.
-     * @param numeroMesa   Número de mesa a activar si aún no está activa.
-     */
+    // agrega unidades de un producto; si la mesa no está activa la abre con el número recibido
     public void agregarProducto(Pedido pedido, int indiceMenu, int cantidad, int numeroMesa) {
+        if (pedido == null) {
+            throw new IllegalArgumentException("El pedido no puede ser nulo.");
+        }
+
+        List<Producto> productos = pedido.getProductos();
+
+        // el índice viene del menú (1-based convertido a 0-based en la vista)
+        if (indiceMenu < 0 || indiceMenu >= productos.size()) {
+            throw new IndexOutOfBoundsException(
+                    "Índice de producto fuera de rango: " + indiceMenu +
+                            ". El menú tiene " + productos.size() + " productos.");
+        }
+
         if (!pedido.isMesaActiva()) {
             pedido.setNumeroMesa(numeroMesa);
         }
 
-        Producto productoSeleccionado = pedido.getProductos().get(indiceMenu);
-        productoSeleccionado.agregarUnidades(cantidad);
+        productos.get(indiceMenu).agregarUnidades(cantidad);
     }
 
-    /**
-     * Calcula la factura, registra el total y cierra la mesa.
-     * El número de factura queda capturado dentro del ResultadoFactura
-     * antes de que el Pedido lo incremente.
-     *
-     * @param pedido Pedido con los productos seleccionados.
-     * @return Resultado del cálculo listo para imprimir.
-     */
+    // calcula la factura, guarda el total y cierra la mesa; el número queda en ResultadoFactura
     public ResultadoFactura generarYCerrarFactura(Pedido pedido) {
+        if (pedido == null) {
+            throw new IllegalArgumentException("El pedido no puede ser nulo.");
+        }
+
         ResultadoFactura resultado = calculoService.calcularFactura(pedido);
         pedido.setTotalUltimaFactura(resultado.getTotalFinal());
         pedido.cerrarMesaYAvanzarFactura();
         return resultado;
     }
 
-    /** Reinicia el pedido para una nueva mesa. */
+    // limpia el pedido para atender una nueva mesa sin instanciar objetos nuevos
     public void prepararNuevaMesa(Pedido pedido) {
+        if (pedido == null) {
+            throw new IllegalArgumentException("El pedido no puede ser nulo.");
+        }
         pedido.reiniciarPedido();
     }
 }

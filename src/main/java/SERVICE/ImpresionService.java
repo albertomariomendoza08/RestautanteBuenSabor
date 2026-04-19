@@ -7,11 +7,7 @@ import UTIL.Constantes;
 
 public class ImpresionService {
 
-    // ── Carta ─────────────────────────────────────────────────────────────────
-
-    /**
-     * Muestra la carta completa del restaurante con numeración y precios.
-     */
+    // muestra la carta completa con numeración y precios formateados
     public void mostrarCarta(Pedido pedido) {
         imprimirEncabezadoRestaurante();
         System.out.println("    --- NUESTRA CARTA ---");
@@ -28,11 +24,7 @@ public class ImpresionService {
         System.out.println(Constantes.SEPARADOR_DOBLE);
     }
 
-    // ── Pedido actual ─────────────────────────────────────────────────────────
-
-    /**
-     * Muestra los productos seleccionados con sus cantidades y subtotales parciales.
-     */
+    // lista los productos pedidos con cantidad y subtotal parcial
     public void mostrarPedidoActual(Pedido pedido) {
         double subtotal = 0;
 
@@ -52,15 +44,7 @@ public class ImpresionService {
         System.out.printf("%-27s $%,.0f%n", "Subtotal:", subtotal);
     }
 
-    // ── Facturas ──────────────────────────────────────────────────────────────
-
-    /**
-     * Imprime la factura detallada. Usa el número de factura del ResultadoFactura
-     * (capturado antes del incremento) para mostrar el número correcto.
-     *
-     * @param pedido    Pedido con los productos seleccionados (para listar ítems).
-     * @param resultado Resultado del cálculo con el número de factura correcto.
-     */
+    // imprime la factura completa: encabezado, ítems y totales
     public void imprimirFacturaCompleta(Pedido pedido, ResultadoFactura resultado) {
         imprimirEncabezadoFactura(resultado.getNumeroFactura());
         imprimirItemsDelPedido(pedido);
@@ -68,11 +52,7 @@ public class ImpresionService {
         imprimirPieDeFactura();
     }
 
-    /**
-     * Imprime únicamente el resumen de totales.
-     *
-     * @param resultado Resultado del cálculo con los totales y número de factura.
-     */
+    // versión resumida de la factura sin detallar cada ítem
     public void imprimirFacturaResumen(ResultadoFactura resultado) {
         imprimirEncabezadoFactura(resultado.getNumeroFactura());
         System.out.printf("FACTURA No. %03d (RESUMEN)%n", resultado.getNumeroFactura());
@@ -80,14 +60,14 @@ public class ImpresionService {
         imprimirTotalesFactura(resultado);
     }
 
-    // ── Métodos privados de impresión ─────────────────────────────────────────
-
+    // encabezado sin NIT ni dirección, solo para la carta
     private void imprimirEncabezadoRestaurante() {
         System.out.println(Constantes.SEPARADOR_DOBLE);
         System.out.println("    " + Constantes.NOMBRE_RESTAURANTE);
         System.out.println(Constantes.SEPARADOR_DOBLE);
     }
 
+    // encabezado completo con datos fiscales para facturas legales
     private void imprimirEncabezadoFactura(int numeroFactura) {
         System.out.println(Constantes.SEPARADOR_DOBLE);
         System.out.println("    " + Constantes.NOMBRE_RESTAURANTE);
@@ -98,6 +78,7 @@ public class ImpresionService {
         System.out.println(Constantes.SEPARADOR_SIMPLE);
     }
 
+    // recorre solo los productos con unidades para no imprimir líneas vacías
     private void imprimirItemsDelPedido(Pedido pedido) {
         for (Producto producto : pedido.getProductos()) {
             if (producto.tieneUnidadesPedidas()) {
@@ -110,6 +91,7 @@ public class ImpresionService {
         System.out.println(Constantes.SEPARADOR_SIMPLE);
     }
 
+    // la propina solo se imprime si aplica, para no confundir al cliente
     private void imprimirTotalesFactura(ResultadoFactura resultado) {
         System.out.printf("%-27s $%,.0f%n", "Subtotal:", resultado.getSubtotalConDescuento());
         System.out.printf("%-27s $%,.0f%n", "IVA (19%):", resultado.getMontoIva());

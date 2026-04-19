@@ -5,10 +5,7 @@ import MODEL.ResultadoFactura;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Capa de acceso a datos en memoria.
- * Almacena el historial de facturas generadas durante la sesión.
- */
+// almacena en memoria el historial de facturas generadas durante la sesión
 public class PedidoDao {
 
     private final List<ResultadoFactura> historialFacturas;
@@ -17,34 +14,27 @@ public class PedidoDao {
         this.historialFacturas = new ArrayList<>();
     }
 
-    /**
-     * Registra una factura generada en el historial.
-     *
-     * @param resultado Resultado de la factura a guardar.
-     */
+    // registra una factura al historial; no se permite guardar nulos
     public void guardarFactura(ResultadoFactura resultado) {
+        if (resultado == null) {
+            throw new IllegalArgumentException("No se puede guardar una factura nula.");
+        }
         historialFacturas.add(resultado);
     }
 
-    /**
-     * @return Copia de la lista de todas las facturas generadas en la sesión.
-     */
+    // devuelve copia para que nadie modifique el historial desde afuera
     public List<ResultadoFactura> obtenerHistorial() {
         return new ArrayList<>(historialFacturas);
     }
 
-    /**
-     * @return Total acumulado de todas las facturas de la sesión.
-     */
+    // suma todos los totales de la sesión para el cierre del día
     public double calcularTotalAcumulado() {
         return historialFacturas.stream()
                 .mapToDouble(ResultadoFactura::getTotalFinal)
                 .sum();
     }
 
-    /**
-     * @return Número de facturas registradas en la sesión.
-     */
+    // cantidad de facturas emitidas en la sesión activa
     public int contarFacturas() {
         return historialFacturas.size();
     }

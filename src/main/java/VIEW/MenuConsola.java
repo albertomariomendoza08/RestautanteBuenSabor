@@ -8,9 +8,12 @@ import SERVICE.ImpresionService;
 import SERVICE.PedidoService;
 import UTIL.Constantes;
 
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class MenuConsola {
+
+    // constantes de opciones para que el switch sea legible sin números mágicos
     private static final int OPCION_VER_CARTA         = 1;
     private static final int OPCION_AGREGAR_PRODUCTO  = 2;
     private static final int OPCION_VER_PEDIDO        = 3;
@@ -34,11 +37,7 @@ public class MenuConsola {
         this.entradaUsuario   = new Scanner(System.in);
     }
 
-    // ── Bucle principal ───────────────────────────────────────────────────────
-
-    /**
-     * Inicia el sistema y mantiene el menú activo hasta que el usuario elija salir.
-     */
+    // arranca el sistema y mantiene el bucle hasta que el usuario elija salir
     public void iniciar() {
         imprimirBienvenida();
 
@@ -52,8 +51,7 @@ public class MenuConsola {
         entradaUsuario.close();
     }
 
-    // ── Procesamiento de opciones ─────────────────────────────────────────────
-
+    // despacha cada opción a su método; retorna false solo cuando el usuario elige salir
     private boolean procesarOpcion(int opcionSeleccionada) {
         switch (opcionSeleccionada) {
             case OPCION_VER_CARTA:        procesarVerCarta();        break;
@@ -92,6 +90,8 @@ public class MenuConsola {
         }
 
         int numeroMesa = obtenerNumeroMesaParaElPedido();
+
+        // el índice 0-based se construye acá para que el service no dependa del formato del menú
         pedidoService.agregarProducto(pedido, numeroProduto - 1, cantidad, numeroMesa);
 
         String nombreProducto = pedido.getProductos().get(numeroProduto - 1).getNombre();
@@ -116,7 +116,6 @@ public class MenuConsola {
             return;
         }
 
-        // resultado ya contiene el número de factura correcto (antes del incremento en pedido)
         ResultadoFactura resultado = pedidoService.generarYCerrarFactura(pedido);
         pedidoDao.guardarFactura(resultado);
         impresionService.imprimirFacturaCompleta(pedido, resultado);
@@ -150,8 +149,6 @@ public class MenuConsola {
         System.out.println();
     }
 
-    // ── Lectura de entradas del usuario ───────────────────────────────────────
-
     private void imprimirBienvenida() {
         System.out.println(Constantes.SEPARADOR_DOBLE);
         System.out.println("    " + Constantes.NOMBRE_RESTAURANTE);
@@ -172,30 +169,51 @@ public class MenuConsola {
         System.out.print("Seleccione una opción: ");
     }
 
+    // si el usuario escribe letras en vez de números, se muestra mensaje y se devuelve -1
     private int leerOpcionDelUsuario() {
-        return entradaUsuario.nextInt();
+        try {
+            return entradaUsuario.nextInt();
+        } catch (InputMismatchException e) {
+            entradaUsuario.nextLine(); // limpia el buffer para no quedar en bucle infinito
+            System.out.println("Entrada inválida. Ingrese un número.");
+            return -1;
+        }
     }
 
     private int leerNumeroProducto() {
         System.out.print("Número de producto (1-" + pedido.getProductos().size() + "): ");
-        return entradaUsuario.nextInt();
+        try {
+            return entradaUsuario.nextInt();
+        } catch (InputMismatchException e) {
+            entradaUsuario.nextLine();
+            return -1; // -1 falla la validación esNumeroDeProductoValido y muestra el mensaje
+        }
     }
 
     private int leerCantidad() {
         System.out.print("Cantidad: ");
-        return entradaUsuario.nextInt();
+        try {
+            return entradaUsuario.nextInt();
+        } catch (InputMismatchException e) {
+            entradaUsuario.nextLine();
+            return 0; // 0 falla la validación esCantidadValida y muestra el mensaje
+        }
     }
 
+    // si la mesa ya está activa se reutiliza su número para no preguntar al mesero de nuevo
     private int obtenerNumeroMesaParaElPedido() {
         if (pedido.isMesaActiva()) {
             return pedido.getNumeroMesa();
         }
         System.out.print("Ingrese número de mesa: ");
-        int numeroMesa = entradaUsuario.nextInt();
-        return (numeroMesa > 0) ? numeroMesa : 1;
+        try {
+            int numeroMesa = entradaUsuario.nextInt();
+            return (numeroMesa > 0) ? numeroMesa : 1;
+        } catch (InputMismatchException e) {
+            entradaUsuario.nextLine();
+            return 1; // mesa por defecto si el usuario escribe algo inválido
+        }
     }
-
-    // ── Validaciones ──────────────────────────────────────────────────────────
 
     private boolean esNumeroDeProductoValido(int numeroProduto) {
         return numeroProduto >= 1 && numeroProduto <= pedido.getProductos().size();

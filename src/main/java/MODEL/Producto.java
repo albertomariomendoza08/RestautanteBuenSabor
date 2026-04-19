@@ -5,44 +5,37 @@ public class Producto {
     private final double precio;
     private int         cantidad;
 
-    /**
-     * @param nombre Nombre descriptivo del plato o bebida.
-     * @param precio Precio unitario en pesos colombianos.
-     */
     public Producto(String nombre, double precio) {
         this.nombre   = nombre;
         this.precio   = precio;
         this.cantidad = 0;
     }
 
-    // ── Getters ───────────────────────────────────────────────────────────────
-
+    // getters básicos del producto
     public String getNombre()   { return nombre; }
     public double getPrecio()   { return precio; }
     public int    getCantidad() { return cantidad; }
 
-    // ── Lógica de pedido ──────────────────────────────────────────────────────
-
-    /**
-     * Añade unidades al pedido.
-     *
-     * @param unidades Cantidad positiva a agregar.
-     */
+    // suma unidades al pedido; no acepta cero ni negativos porque corrompería el subtotal
     public void agregarUnidades(int unidades) {
+        if (unidades <= 0) {
+            throw new IllegalArgumentException(
+                    "La cantidad a agregar debe ser mayor a cero. Se recibió: " + unidades);
+        }
         this.cantidad += unidades;
     }
 
-    /** Reinicia la cantidad pedida a cero. */
+    // reinicia a cero para reutilizar el producto en un nuevo pedido
     public void reiniciarCantidad() {
         this.cantidad = 0;
     }
 
-    /** @return Subtotal parcial (precio × cantidad). */
+    // precio multiplicado por las unidades pedidas
     public double calcularSubtotalParcial() {
         return precio * cantidad;
     }
 
-    /** @return {@code true} si el producto tiene al menos una unidad en el pedido. */
+    // true si el cliente ya pidió al menos una unidad de este producto
     public boolean tieneUnidadesPedidas() {
         return cantidad > 0;
     }

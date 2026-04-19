@@ -7,15 +7,16 @@ import UTIL.Constantes;
 
 public class CalculoService {
 
-    /**
-     * Calcula el resultado completo de la factura para el pedido actual.
-     * Captura el número de factura ANTES de que el Pedido lo incremente.
-     *
-     * @param pedido Pedido con los productos y cantidades seleccionadas.
-     * @return {@link ResultadoFactura} con subtotal, IVA, propina, total y número de factura.
-     */
+    // punto de entrada principal: recibe el pedido y devuelve la factura calculada
     public ResultadoFactura calcularFactura(Pedido pedido) {
-        // Capturar el número de factura actual antes de cualquier modificación al pedido
+        if (pedido == null) {
+            throw new IllegalArgumentException("El pedido no puede ser nulo.");
+        }
+        if (!pedido.hayProductosEnPedido()) {
+            throw new IllegalStateException("No se puede facturar un pedido sin productos.");
+        }
+
+        // se captura el número ANTES de que el pedido lo incremente al cerrar la mesa
         int numeroFactura = pedido.getNumeroFactura();
 
         double subtotalBruto        = calcularSubtotalBruto(pedido);
@@ -28,11 +29,7 @@ public class CalculoService {
         return new ResultadoFactura(subtotalConDescuento, montoIva, montoPropina, totalFinal, numeroFactura);
     }
 
-    // ── Métodos privados de cálculo ───────────────────────────────────────────
-
-    /**
-     * Suma precio × cantidad de cada producto en el pedido.
-     */
+    // suma precio × cantidad de cada producto que tenga unidades en el pedido
     private double calcularSubtotalBruto(Pedido pedido) {
         return pedido.getProductos().stream()
                 .filter(Producto::tieneUnidadesPedidas)
@@ -40,9 +37,7 @@ public class CalculoService {
                 .sum();
     }
 
-    /**
-     * Aplica un descuento por volumen cuando el pedido supera el mínimo de productos distintos.
-     */
+    // el descuento solo aplica cuando el cliente pidió más de MINIMO_ITEMS_CON_DESCUENTO productos distintos
     private double aplicarDescuentoPorVolumen(double subtotalBruto, int cantidadDistintos) {
         if (cantidadDistintos > Constantes.MINIMO_ITEMS_CON_DESCUENTO) {
             return subtotalBruto - (subtotalBruto * Constantes.DESCUENTO_POR_VOLUMEN);
@@ -50,16 +45,12 @@ public class CalculoService {
         return subtotalBruto;
     }
 
-    /**
-     * Calcula el IVA sobre la base imponible.
-     */
+    // IVA colombiano estándar sobre la base imponible
     private double calcularIva(double baseImponible) {
         return baseImponible * Constantes.TASA_IVA;
     }
 
-    /**
-     * Aplica propina solo cuando la base con IVA supera el umbral definido.
-     */
+    // la propina se cobra solo cuando el subtotal supera el umbral definido en Constantes
     private double calcularPropina(double baseConIva, double subtotalConDescuento) {
         if (subtotalConDescuento > Constantes.UMBRAL_PROPINA) {
             return baseConIva * Constantes.PORCENTAJE_PROPINA;

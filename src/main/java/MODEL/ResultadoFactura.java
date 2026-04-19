@@ -1,10 +1,7 @@
 package MODEL;
 
-/**
- * Encapsula el resultado del cálculo de una factura.
- * Incluye el número de factura capturado ANTES de que el Pedido lo incremente,
- * para que la impresión muestre siempre el número correcto.
- */
+// estructura inmutable que transporta los resultados de un cálculo de factura
+// se crea con el número de factura ANTES de que Pedido lo incremente
 public class ResultadoFactura {
     private final double subtotalConDescuento;
     private final double montoIva;
@@ -24,13 +21,14 @@ public class ResultadoFactura {
         this.numeroFactura        = numeroFactura;
     }
 
+    // getters del resultado de factura
     public double getSubtotalConDescuento() { return subtotalConDescuento; }
     public double getMontoIva()             { return montoIva; }
     public double getMontoPropina()         { return montoPropina; }
     public double getTotalFinal()           { return totalFinal; }
     public int    getNumeroFactura()        { return numeroFactura; }
 
-    /** @return {@code true} si se aplicó propina al pedido. */
+    // true cuando el subtotal superó el umbral y se cobró propina
     public boolean tienePropina() {
         return montoPropina > 0;
     }
